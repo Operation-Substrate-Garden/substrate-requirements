@@ -10,14 +10,14 @@ This diagram shows the primary components of the system and their high-level int
 graph TD
     User([User])
     
-    subgraph Frontend_Substrate [Client Layer]
-        WebApp[substrate-web]
-        MobileApp[substrate-app]
+    subgraph Client_Layer [Frontend Substrate]
+        WebApp[substrate-web - Cloud Run]
+        MobileApp[substrate-app - Native]
     end
     
-    subgraph Backend_Substrate [Core Layer]
-        API[substrate-backend]
-        DB[(PostgreSQL / Vector DB)]
+    subgraph Core_Layer [Backend Substrate]
+        API[substrate-backend - Cloud Run]
+        DB[(Cloud SQL - PostgreSQL)]
     end
     
     User -->|Accesses via Web| WebApp
@@ -26,13 +26,21 @@ graph TD
     WebApp -->|REST / GraphQL| API
     MobileApp -->|REST / GraphQL| API
     
-    API <-->|Stores & Fetches Data| DB
+    API <-->|Relational Data| DB
     
     WhitelistService[Organization Whitelist Service]
     API -->|Verifies Membership| WhitelistService
 ```
 
-## 2. Component Responsibilities
+## 2. Hosting Strategy: The Minimal Substrate
+
+To ensure "Military Precision" from day one while maintaining cost-efficiency during the emergence phase, we utilize a **Serverless-First** approach for compute and a **Relational-First** approach for data.
+
+- **Compute (Cloud Run):** Both the `substrate-web` and `substrate-backend` are hosted on Google Cloud Run. This allows for near-zero costs during low-traffic periods while providing instant scalability.
+- **Data (Cloud SQL - PostgreSQL):** We explicitly choose **Cloud SQL** over NoSQL alternatives to maintain strict data integrity and support complex relational queries (Organizations -> Users -> Communities). 
+  - *Minimal Configuration:* A `db-f1-micro` instance in `us-central1` provides the necessary "Architectural Substrate" for approximately ~$10/month.
+
+## 3. Component Responsibilities
 
 ### substrate-backend
 The central logic of the system. It is responsible for:
@@ -51,7 +59,7 @@ The native mobile application for on-the-go access.
 - Optimized for "Mobile Tactical Input Fields."
 - Provides real-time notifications for topic updates within joined communities.
 
-## 3. Core Domain Model
+## 4. Core Domain Model
 
 ```mermaid
 erDiagram
